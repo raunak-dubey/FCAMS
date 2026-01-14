@@ -1,33 +1,36 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface Project {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 interface ProjectsState {
-  items: Project[]
+  items: Project[];
+  hydrated: boolean;
 }
 
 const initialState: ProjectsState = {
-  items: [
-    { id: "1", name: "FCAMS Dashboard" },
-    { id: "2", name: "Landing Page" },
-  ],
-}
+  items: [],
+  hydrated: false,
+};
 
 const projectsSlice = createSlice({
   name: "projects",
   initialState,
   reducers: {
+    hydrateProjects(state, action: PayloadAction<Project[]>) {
+      state.items = action.payload;
+      state.hydrated = true;
+    },
     addProject(state, action: PayloadAction<{ name: string }>) {
       state.items.push({
         id: crypto.randomUUID(),
         name: action.payload.name,
-      })
+      });
     },
   },
-})
+});
 
-export const { addProject } = projectsSlice.actions
-export default projectsSlice.reducer
+export const { addProject, hydrateProjects } = projectsSlice.actions;
+export default projectsSlice.reducer;

@@ -1,11 +1,17 @@
-import { motion } from "motion/react";
-import { ChevronLeft, ChevronRight, LayoutDashboard, Folder, Settings } from "lucide-react";
-import { Button } from "@/shared/ui/button/button";
-import { cn } from "@/shared/lib/cn";
+import { motion } from "motion/react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  Folder,
+  Settings,
+} from "lucide-react"
+import { cn } from "@/shared/lib/cn"
+import { Button } from "@/shared/ui/button/Button"
 
 interface SidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
+  collapsed: boolean
+  onToggle: () => void
 }
 
 const items = [
@@ -20,10 +26,10 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
       className="
-        h-screen
+        hidden sm:flex
+        h-screen flex-col
         border-r border-neutral-800
         bg-neutral-950
-        flex flex-col
       "
     >
       <div className="flex items-center justify-between p-4">
@@ -34,40 +40,33 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         )}
 
         <Button
-          variant="ghost"
-          size="icon"
           onClick={onToggle}
           className="
-            rounded-md
+            rounded-md p-2
             text-neutral-400
-            hover:text-rose-400
-            hover:bg-neutral-900
+            hover:bg-neutral-900 hover:text-rose-400
           "
+          variant="ghost"
         >
-          {collapsed ? (
-            <ChevronRight size={16} />
-          ) : (
-            <ChevronLeft size={16} />
-          )}
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </Button>
       </div>
 
-      {/* Navigation */}
       <nav className="mt-2 flex flex-col gap-1 px-2">
         {items.map(({ icon: Icon, label }) => (
-          <button
+          <Button
             key={label}
             className={cn(
-              "flex items-center gap-3 rounded-md px-5 py-2 text-sm cursor-pointer",
-              "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100",
-              "transition-colors"
+              "gap-3 rounded-md px-4 py-2 text-sm",
+              "text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100"
             )}
+            variant="ghost"
           >
             <Icon className="size-4 text-rose-500" />
             {!collapsed && <span>{label}</span>}
-          </button>
+          </Button>
         ))}
       </nav>
     </motion.aside>
-  );
-};
+  )
+}

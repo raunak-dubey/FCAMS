@@ -1,26 +1,42 @@
 import * as React from "react"
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/shared/ui/command/command"
 import { Folder, Plus } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks"
 import { addProject } from "../store/projects.slice"
 import { closeCommand, openCommand } from "../store/ui.slice"
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandGroup,
+  CommandSeparator,
+  CommandEmpty,
+} from "@/shared/ui/command/Command"
 
 export const CommandPalette = () => {
   const dispatch = useAppDispatch()
   const open = useAppSelector((s) => s.ui.isCommandOpen)
-
+  const projects = useAppSelector((s) => s.projects.items)
+  const inputRef = React.useRef<HTMLInputElement>(null)
 
   const [mode, setMode] = React.useState<"default" | "create">("default")
   const [value, setValue] = React.useState("")
-  // Keyboard shortcut
+
+  const query = value.trim().toLowerCase()
+
+  const filteredProjects =
+    query.length === 0
+      ? projects
+      : projects.filter((p) =>
+        p.name.toLowerCase().includes(query)
+      )
+
+  const showEmpty =
+    mode === "default" &&
+    query.length > 0 &&
+    filteredProjects.length === 0
+
+
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "p") {
@@ -28,9 +44,21 @@ export const CommandPalette = () => {
         dispatch(openCommand())
       }
     }
+
+    if (open) {
+      // small delay ensures portal + input are mounted
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+      })
+    }
+
+    if (!open) {
+      setMode("default")
+      setValue("")
+    }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [dispatch])
+  }, [dispatch, open])
 
   const handleCreate = () => {
     if (!value.trim()) return
@@ -41,12 +69,15 @@ export const CommandPalette = () => {
   }
 
   return (
-    <CommandDialog open={open} onOpenChange={(v) =>
-      v ? dispatch(openCommand()) : dispatch(closeCommand())
-    }
+    <CommandDialog
+      open={open}
+      onOpenChange={(v) =>
+        v ? dispatch(openCommand()) : dispatch(closeCommand())
+      }
     >
-      <div className="rounded-md border border-border bg-neutral-900 shadow-xl">
+      <div className="rounded-md border border-neutral-800 bg-neutral-900 shadow-xl">
         <CommandInput
+          ref={inputRef}
           placeholder={
             mode === "create"
               ? "Enter project name…"
@@ -55,30 +86,43 @@ export const CommandPalette = () => {
           value={value}
           onValueChange={setValue}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && mode === "create") {
-              e.preventDefault()
-              handleCreate()
+            if (mode === "create") {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                handleCreate()
+              }
+
+              if (e.key === "Escape") {
+                e.preventDefault()
+                setMode("default")
+                setValue("")
+              }
+
+              if (e.key === "Backspace" && value.length === 0) {
+                setMode("default")
+              }
             }
           }}
-          className="border-none focus:ring-0 text-foreground"
         />
 
-        <CommandList className="max-h-80">
-          <CommandEmpty className="py-6 text-center text-sm text-neutral-300">
-            No results found.
-          </CommandEmpty>
+        <CommandList>
+          {showEmpty && (
+            <CommandEmpty className="py-6 text-center">
+              No results found.
+            </CommandEmpty>
+          )}
 
           {mode === "default" && (
             <>
               <CommandGroup heading="Actions">
                 <CommandItem
-                  className="text-accent"
                   onSelect={() => {
                     setMode("create")
                     setValue("")
                   }}
+                  className="px-3 py-2"
                 >
-                  <Plus className="mr-2 size-4 text-rose-500" />
+                  <Plus className="size-4 text-rose-500" />
                   Create new project
                 </CommandItem>
               </CommandGroup>
@@ -86,19 +130,21 @@ export const CommandPalette = () => {
               <CommandSeparator />
 
               <CommandGroup heading="Projects">
-                <CommandItem className="text-accent">
-                  <Folder className="mr-2 size-4 text-rose-500" />
-                  FCAMS Dashboard
-                </CommandItem>
+                {filteredProjects.map((project) => (
+                  <CommandItem key={project.id} className="px-3 py-2">
+                    <Folder className="size-4 text-rose-500" />
+                    {project.name}
+                  </CommandItem>
+                ))}
               </CommandGroup>
             </>
           )}
 
           {mode === "create" && (
             <CommandGroup heading="Create project">
-              <CommandItem onSelect={handleCreate} className="text-accent">
-                <Plus className="mr-2 size-4 text-rose-500" />
-                Press Enter to create project "{value}"
+              <CommandItem onSelect={handleCreate} className="px-3 py-2">
+                <Plus className="size-4 text-rose-500" />
+                Press Enter to create “{value}”
               </CommandItem>
             </CommandGroup>
           )}
