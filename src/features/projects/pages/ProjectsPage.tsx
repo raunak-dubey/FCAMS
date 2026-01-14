@@ -3,26 +3,25 @@ import { AnimatePresence } from "motion/react";
 import { Sidebar } from "@/features/projects/components/Sidebar";
 import { Header } from "@/features/projects/components/Header";
 import { ProjectCard } from "@/features/projects/components/ProjectCard";
+import { CommandPalette } from "../components/CommandPalette";
+import { useAppSelector } from "@/shared/store/hooks";
 
 export const ProjectsPage = () => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const projects = [
-    "FCAMS Dashboard",
-    "Landing Page",
-    "Auth Service",
-    "Internal Admin",
-    "Design System",
-  ];
+    const projects = useAppSelector(
+    (state) => state.projects.items
+  )
 
   return (
-    <div className="flex bg-neutral-950 text-neutral-300">
+    <div className="flex min-h-screen bg-neutral-950 text-neutral-300">
+      <CommandPalette />
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((v) => !v)}
       />
 
-      <main className="flex-1 p-6 max-w-6xl mx-auto">
+      <main className="mx-auto w-full max-w-6xl p-6">
         <Header projectCount={projects.length} />
 
         <section
@@ -31,11 +30,11 @@ export const ProjectsPage = () => {
         >
           <AnimatePresence>
             {projects.map((project) => (
-              <ProjectCard key={project} name={project} />
+              <ProjectCard key={project.id} name={project.name} />
             ))}
           </AnimatePresence>
         </section>
       </main>
     </div>
   );
-}
+};
